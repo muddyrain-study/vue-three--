@@ -1,6 +1,7 @@
 <script setup>
 import * as THREE from "three";
 import RoomShapeMesh from "./threeMesh/RoomShapeMesh";
+import WallShaderMaterial from "./threeMesh/WallShaderMaterial";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 // 创建场景
 const scene = new THREE.Scene();
@@ -39,6 +40,8 @@ texture.mapping = THREE.EquirectangularReflectionMapping;
 scene.background = texture;
 scene.environment = texture;
 
+// 加载接口
+let idToPanorama = {};
 // 加载模型
 fetch(
   "https://test-1251830808.cos.ap-guangzhou.myqcloud.com/three_course/demo720.json"
@@ -55,7 +58,20 @@ fetch(
       const roomMesh = new RoomShapeMesh(room);
       const roomTopMesh = new RoomShapeMesh(room, true);
       scene.add(roomMesh, roomTopMesh);
+
+      // 房间到全景图的映射
+      for (let j = 0; j < obj.panoramaLocation.length; j++) {
+        const panorama = obj.panoramaLocation[j];
+        if (panorama.roomId === room.roomId) {
+          idToPanorama[room.roomId] = panorama;
+          let material = new WallShaderMaterial(panorama);
+          panorama.material = material;
+        }
+      }
+      roomMesh.material = idToPanorama[room.roomId].material;
+      roomTopMesh.material = idToPanorama[room.roomId].material;
     }
+    console.log(idToPanorama);
   });
 </script>
 

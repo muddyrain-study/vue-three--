@@ -24,7 +24,7 @@ export default class RoomShapeMesh extends THREE.Mesh {
     // 生成房间形状几何体
     let roomShapeGeometry = new THREE.ShapeGeometry(roomShape);
     // 旋转几何体
-    roomShapeGeometry.rotateX(-Math.PI / 2);
+    roomShapeGeometry.rotateX(Math.PI / 2);
     this.geometry = roomShapeGeometry;
     this.material = new THREE.MeshBasicMaterial({
       color: 0xff0000,
