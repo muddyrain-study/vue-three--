@@ -1,5 +1,6 @@
 <script setup>
 import * as THREE from "three";
+import RoomShapeMesh from "./threeMesh/RoomShapeMesh";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 // 创建场景
 const scene = new THREE.Scene();
@@ -31,6 +32,31 @@ const axis = new THREE.AxesHelper(5);
 scene.add(axis);
 
 // 加载全景图
+const loader = new THREE.TextureLoader();
+const texture = loader.load("/assets/HdrSkyCloudy004_JPG_8K.jpg");
+texture.mapping = THREE.EquirectangularReflectionMapping;
+
+scene.background = texture;
+scene.environment = texture;
+
+// 加载模型
+fetch(
+  "https://test-1251830808.cos.ap-guangzhou.myqcloud.com/three_course/demo720.json"
+)
+  .then((res) => res.json())
+  .then((obj) => {
+    console.log(obj);
+    // 循环创建房间
+    for (let i = 0; i < obj.objData.roomList.length; i++) {
+      // 获取每个房间数据
+      const room = obj.objData.roomList[i];
+
+      // 创建房间
+      const roomMesh = new RoomShapeMesh(room);
+      const roomTopMesh = new RoomShapeMesh(room, true);
+      scene.add(roomMesh, roomTopMesh);
+    }
+  });
 </script>
 
 <template>
