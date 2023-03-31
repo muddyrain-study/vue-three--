@@ -34,6 +34,7 @@ export default function WallShaderMaterial(panorama) {
         vec3 nPos = normalize(vPosition - uCenter);
         float theta = acos(nPos.y) / 3.14;
         float phi = (atan(nPos.z,nPos.x) + 3.14) / 6.28;
+        phi += 0.75;
         vec4 pColor = texture2D(uPanorama , vec2(phi, theta));
         gl_FragColor = pColor;
     }

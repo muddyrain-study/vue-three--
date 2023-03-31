@@ -2,6 +2,8 @@
 import * as THREE from "three";
 import RoomShapeMesh from "./threeMesh/RoomShapeMesh";
 import WallShaderMaterial from "./threeMesh/WallShaderMaterial";
+import WallMesh from "./threeMesh/WallMesh";
+import gsap from "gsap";
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls";
 // 创建场景
 const scene = new THREE.Scene();
@@ -68,15 +70,71 @@ fetch(
           panorama.material = material;
         }
       }
+
       roomMesh.material = idToPanorama[room.roomId].material;
-      roomTopMesh.material = idToPanorama[room.roomId].material;
+      roomMesh.material.side = THREE.DoubleSide;
+      roomTopMesh.material = idToPanorama[room.roomId].material.clone();
+      roomTopMesh.material.side = THREE.FrontSide;
+    }
+
+    // 创建墙
+    for (let i = 0; i < obj.wallRelation.length; i++) {
+      let wallPoints = obj.wallRelation[i].wallPoints;
+      let faceRelation = obj.wallRelation[i].faceRelation;
+
+      faceRelation.forEach((item) => {
+        item.panorama = idToPanorama[item.roomId];
+      });
+
+      let mesh = new WallMesh(wallPoints, faceRelation);
+      scene.add(mesh);
     }
     console.log(idToPanorama);
   });
+let roomIndex = 0;
+let timeline = gsap.timeline();
+let dir = new THREE.Vector3();
+let panoramaLocation;
+function changeRoom() {
+  let room = panoramaLocation[roomIndex];
+  dir = camera.position
+    .clone()
+    .sub(
+      new THREE.Vector3(
+        room.point[0].x / 100,
+        room.point[0].z / 100,
+        room.point[0].y / 100
+      )
+    )
+    .normalize();
+
+  timeline.to(camera.position, {
+    duration: 1,
+    x: room.point[0].x / 100 + dir.x * 0.01,
+    y: room.point[0].z / 100,
+    z: room.point[0].y / 100 + dir.z * 0.01,
+  });
+  camera.lookAt(
+    room.point[0].x / 100,
+    room.point[0].z / 100,
+    room.point[0].y / 100
+  );
+  controls.target.set(
+    room.point[0].x / 100,
+    room.point[0].z / 100,
+    room.point[0].y / 100
+  );
+  roomIndex++;
+  if (roomIndex >= panoramaLocation.length) {
+    roomIndex = 0;
+  }
+}
 </script>
 
 <template>
-  <div></div>
+  <div>
+    <button class="btn" @click="changeRoom">切换房间</button>
+  </div>
 </template>
 
 <style>
@@ -90,5 +148,15 @@ canvas {
   position: fixed;
   left: 0;
   top: 0;
+}
+.btn {
+  position: fixed;
+  left: 50px;
+  top: 50px;
+  background: skyblue;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  z-index: 1000;
 }
 </style>
